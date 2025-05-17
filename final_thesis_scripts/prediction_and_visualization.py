@@ -1,3 +1,14 @@
+## ------------------------------------ FEATURE SELECTION USING PEARSON CORR --------------------------------------------
+# Compute correlation matrix
+corr_matrix = df_train.drop(columns=['WELL_ID', '26"', '17 1/2"', '12 1/4"', '8 1/2"']).corr()
+
+# Plot heatmap
+plt.figure(figsize=(12,8))
+sns.heatmap(corr_matrix, annot=True, cmap="coolwarm", fmt=".2f", linewidths=0.5)
+# plt.title("Feature Correlation Heatmap")
+plt.show()
+
+
 ## ----------------------------------------- RESULT FOR 8 1/2" SECTION -------------------------------------------------
 # Filter dataset for 8 1/2" section
 section_data = df_train[df_train['8 1/2"'] == 1]
