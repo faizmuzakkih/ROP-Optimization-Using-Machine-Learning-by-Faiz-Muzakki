@@ -1,6 +1,6 @@
 ## --------------------------------- DATA PREPROCESSING ---------------------------------------
 
-# Column Reduction
+# COLUMN REDUCTION
 df.drop(columns=['C1', 'C2', 'C3', 'IC4', 'NC4', 'IC5', 'NC5', 'TGAS', 'GQC'], inplace=True)
 -------------------------------------------------------------------
 # Convert data type into numerical format
@@ -11,7 +11,7 @@ for col in df.columns:
         # skip columns that cannot be converted
         pass
 -------------------------------------------------------------------
-# Visualization of each feature
+# VISUALIZATION OF EACH FEATURE
 # Define number of subplots
 num_cols = len(df.drop(columns=['WELL_ID', 'Section']).columns)
 rows = int(np.ceil(num_cols / 4))
@@ -23,7 +23,6 @@ axes = axes.flatten()
 # Plot histogram for each selected parameter
 for i, col in enumerate(df.drop(columns=['WELL_ID', 'Section']).columns):
     sns.histplot(df[col], bins=30, kde=True, color="blue", ax=axes[i])
-    # df_train_no_outliers[col].hist(bins=20, edgecolor='k', ax=axes[i])
     axes[i].set_title(f'Histogram of {col}')
 
 # Hide unused subplots
@@ -33,14 +32,14 @@ for i in range(num_cols, len(axes)):
 plt.tight_layout()
 plt.show()
 -------------------------------------------------------------------
-# Data Splitting
+# DATA SPLITTING
 train_wells = ['A-3', 'A-5']  # Training wells
 test_well = ['A-4']  # Testing well
 
 df_train = df[df['WELL_ID'].isin(train_wells)].copy()
 df_test = df[df['WELL_ID'].isin(test_well)].copy()
 -------------------------------------------------------------------
-# Data cleaning
+# DATA CLEANING
 # check the missing data
 df_train.isnull().sum()
 
@@ -102,7 +101,6 @@ axes = axes.flatten()
 # Plot histogram for each selected parameter
 for i, col in enumerate(parameters):
     sns.histplot(df_train_no_outliers[col], bins=30, kde=True, color="blue", ax=axes[i])
-    # df_train_no_outliers[col].hist(bins=20, edgecolor='k', ax=axes[i])
     axes[i].set_title(f'Histogram of {col}')
 
 # Hide unused subplots
@@ -125,17 +123,15 @@ duplicates_percentage = (duplicates_count / len(df_train_no_outliers)) * 100
 # visualize the result
 print(f'Amount of duplicates row: {duplicates_count}')
 print(f'Percentage duplicate: {duplicates_percentage:.2f}%')
-
-
-# Encoding categorical variable
+-------------------------------------------------------------------
+# ENCODING CATEGORICAL VARIABLE
 dummies = pd.get_dummies(df['Section']).astype(int)
 # merge the dummy variables with the original data
 merged_df = pd.concat([df, dummies], axis=1)
 # drop the section column
 df = merged_df.drop(['Section'], axis=1)
-
-
-# Separate ROP values using 75th percentile threshold
+-------------------------------------------------------------------
+# SEPARATE ROP VALUES USING 75TH PERCENTILE THRESHOLD
 sections = ['26"', '17 1/2"', '12 1/4"', '8 1/2"']
 
 # Create subplots
@@ -183,8 +179,6 @@ for section in sections:
     
     # Assign "Low" (0) or "High" (1) based on Q3
     df_train.loc[df_train[section] == 1, "ROP_Class"] = np.where(df_train.loc[df_train[section] == 1, "ROP"] < q3, 0, 1)
-
-df_train.loc[df_train['ROP_Class'] == 0]
 
 # Drop the original ROP column
 df_train = df_train.drop(columns=['ROP'])
