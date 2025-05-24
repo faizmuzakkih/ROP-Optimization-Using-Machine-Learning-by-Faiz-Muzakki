@@ -58,6 +58,7 @@ for section in section_cols:
 auc_results_df = pd.DataFrame(auc_results)
 print("\n=== AUC Scores for Each Section ===\n=== Using Logistic Regression ===")
 print(auc_results_df)
+
 ------------------------------------------------------------------------
 # SUPPORT VECTOR MACHINE (SVM)
 # Store AUC results
@@ -112,6 +113,7 @@ for section in section_cols:
 auc_results_df_svm = pd.DataFrame(auc_results_svm)
 print("\n=== AUC Scores for Each Section ===\n=== Using SVM ===")
 print(auc_results_df_svm)
+
 ------------------------------------------------------------------------
 # RANDOM FOREST
 # Store AUC results
@@ -175,8 +177,8 @@ print(auc_results_df)
 section_cols = ['26"', '17 1/2"', '12 1/4"', '8 1/2"']
 
 # Filter train and test data for the selected sections
-train_section = df_train[(df_train['8 1/2"'] == 1) | (df_train['26"'] == 1)]
-test_section = df_test[(df_test['8 1/2"'] == 1) | (df_train['26"'] == 1)]
+train_section = df_train[(df_train['8 1/2"'] == 1)]
+test_section = df_test[(df_test['8 1/2"'] == 1)]
 
 # Define X (features) and y (target)
 X_train_RF = train_section.drop(columns=["ROP_Class"] + section_cols)
@@ -236,6 +238,45 @@ cv_scores = cross_val_score(best_RF_model, X_train_RF, y_train_RF, cv=rskf, scor
 print(f'Cross-Validation Accuracy Scores: {cv_scores}')
 print(f'Mean CV Accuracy: {np.mean(cv_scores):.2f}')
 print(f'Standard Deviation: {np.std(cv_scores):.2f}')
+
+------------------------------------------------------------------------
+## SUPPORT VECTOR MACHINE (SVM) MODEL TRAINING
+# Filter train and test data for the selected sections
+train_section = df_train_scaled[df_train_scaled['26"'] == 1]
+test_section = df_test_scaled[df_test_scaled['26"'] == 1]
+
+# Define X (features) and y (target)
+X_train_SVM = train_section.drop(columns=["ROP_Class"] + section_cols)
+y_train_SVM = train_section["ROP_Class"]
+X_test_SVM = test_section.drop(columns=["ROP_Class"] + section_cols)
+y_test_SVM = test_section["ROP_Class"]
+
+# Create the parameter grid based on the results of random search
+param_grid_SVM = {
+    'C': [0.0001, 0.001, 0.01, 0.1],
+    'kernel': ['linear']
+}
+
+# Create a base model
+base_model_SVM = SVC(class_weight='balanced', probability=True)
+
+# Instantiate the grid search model
+grid_search_SVM = GridSearchCV(estimator=base_model_SVM, param_grid=param_grid_SVM, cv=10, scoring='recall', n_jobs=-1, verbose=2, error_score='raise')
+
+# Fit the grid search to the filtered training data
+grid_search_SVM.fit(X_train_SVM, y_train_SVM)
+
+# Evaluate the model with hyperparameter generated from GridSearchCV
+best_SVM_model = grid_search_SVM.best_estimator_
+random_accuracy = evaluate(best_SVM_model, X_test_SVM, y_test_SVM)
+
+# Perform stratified k-fold cross-validation
+rskf = RepeatedKFold(n_splits=15, n_repeats=5, random_state=70)
+cv_scores = cross_val_score(best_SVM_model, X_train_SVM, y_train_SVM, cv=rskf, scoring='accuracy')
+print(f'Cross-Validation Accuracy Scores: {cv_scores}')
+print(f'Mean CV Accuracy: {np.mean(cv_scores):.2f}')
+print(f'Standard Deviation: {np.std(cv_scores):.2f}')
+
 ------------------------------------------------------------------------
 ## LOGISTIC REGRESSION MODEL TRAINING
 # Filter train and test data for the selected sections
